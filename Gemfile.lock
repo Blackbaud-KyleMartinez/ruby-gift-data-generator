@@ -1,0 +1,29 @@
+GIT
+  remote: git://github.com/stympy/faker.git
+  revision: 657162ad07a574f5e6b22d009eb6ff1253786bca
+  branch: master
+  specs:
+    faker (1.8.4)
+      i18n (~> 0.5)
+
+GEM
+  remote: http://www.rubygems.org/
+  specs:
+    concurrent-ruby (1.0.5)
+    i18n (0.9.0)
+      concurrent-ruby (~> 1.0)
+    macaddr (1.7.1)
+      systemu (~> 2.6.2)
+    systemu (2.6.5)
+    uuid (2.3.8)
+      macaddr (~> 1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  faker!
+  uuid
+
+BUNDLED WITH
+   1.11.2
