@@ -11,11 +11,18 @@ class RandomGenerator
   STARBUCKS_CSV_FILE_LOCATION = './../starbucks_data/All_Starbucks_locations_in_the_World.csv'
   EXPORTED_CSV_DIR = './../constituent_data/exported/'
 
-  CAMPAIGN_ID = 1990
+  CAMPAIGN_IDS = [1081]
 
-  BASIC_LEVEL_ID = 8593
+  BASIC_LEVEL_IDS = [1166, 1170]
 
-  RECURRING_LEVEL_ID = 8592
+  RECURRING_LEVEL_IDS = [1170]
+
+  VALID_CITIES = ['Austin', 'Dallas', 'San Antonio', 'Los Angeles', 'New York', 'San Francisco', 'Chicago', 'Boston',
+                  'Miami', 'Charleston', 'Denver', 'Seattle', 'Portland', 'St. Louis', 'Indianapolis', 'Detroit',
+                  'Minneapolis', 'Phoenix', 'Santa Fe', 'Salt Lake City', 'Houston', 'Atlanta', 'New Orleans',
+                  'Nashville', 'Washington', 'Las Vegas', 'Newark', 'Charlotte', 'Philadelphia', 'Spokane', 'San Diego',
+                  'Baltimore', 'Orlando', 'Pittsburgh', 'Cincinnati', 'Cleveland', 'Milwaukee', 'Oklahoma City',
+                  'Louisville', 'Richmond', 'Birmingham']
 
   def initialize
     @available_addresses = get_some_starbucks_addresses
@@ -26,7 +33,7 @@ class RandomGenerator
     gift = Gift.new
     gift.cons_id = random_cons_id
     gift.address = address
-    gift.campaign_id = CAMPAIGN_ID
+    gift.campaign_id = random_campaign_id
     gift.tender_type = 'Credit Card'
     gift.tender_instance = 'Visa'
     gift.card_number = '************1111'
@@ -34,7 +41,7 @@ class RandomGenerator
     random_date = random_gift_date
     gift.gift_date = random_date.strftime('%Y/%m/%d')
     gift.value = random_gift_amount
-    gift.donation_level_id = RECURRING_LEVEL_ID
+    gift.donation_level_id = random_recurring_level_id
     gift.duration = rand(2..8)
     gift.frequency = 'monthly'
     gift.next_payment_date = (random_date + 30).strftime('%Y/%m/%d')
@@ -46,8 +53,8 @@ class RandomGenerator
     gift = Gift.new
     gift.cons_id = random_cons_id
     gift.address = address
-    gift.campaign_id = CAMPAIGN_ID
-    gift.donation_level_id = BASIC_LEVEL_ID
+    gift.campaign_id = random_campaign_id
+    gift.donation_level_id = random_basic_level_id
     gift.tender_type = 'Credit Card'
     gift.tender_instance = 'Visa'
     gift.card_number = '************1111'
@@ -63,7 +70,7 @@ class RandomGenerator
     constituent.address = address
     constituent.first_name = Faker::Name.first_name
     constituent.last_name = Faker::Name.last_name
-    constituent.email = Faker::Internet.email
+    constituent.email = Faker::Internet.email(constituent.first_name[0] + constituent.last_name)
     constituent.gender = random_gender
     constituent
   end
@@ -98,6 +105,21 @@ class RandomGenerator
     @available_cons_ids[rand(0..num_ids - 1)]
   end
 
+  def random_campaign_id
+    num_ids = CAMPAIGN_IDS.size
+    CAMPAIGN_IDS[rand(0..num_ids - 1)]
+  end
+
+  def random_basic_level_id
+    num_ids = BASIC_LEVEL_IDS.size
+    BASIC_LEVEL_IDS[rand(0..num_ids - 1)]
+  end
+
+  def random_recurring_level_id
+    num_ids = RECURRING_LEVEL_IDS.size
+    RECURRING_LEVEL_IDS[rand(0..num_ids - 1)]
+  end
+
   def get_exported_cons_ids
     exported_files = Dir.entries(EXPORTED_CSV_DIR).select do |file|
       file != '.' && file != '..'
@@ -106,10 +128,11 @@ class RandomGenerator
     cons_ids = []
     exported_files.each do |file|
       csv = CSV::parse(File.open(EXPORTED_CSV_DIR + file, 'r') {|f| f.read })
-      csv.shift
+      headers = csv.shift
 
       cons_ids += csv.collect do |record|
-        record[0]
+        row = CSV::Row.new(headers, record)
+        row.field('CONS_ID')
       end
     end
 
@@ -123,17 +146,7 @@ class RandomGenerator
     list_of_rows = csv.collect { |record| Hash[*fields.zip(record).flatten ] }
 
     list_of_rows.select do |row|
-      row['city'] == 'Austin'||
-          row['city'] == 'Dallas' ||
-          row['city'] == 'San Antonio' ||
-          row['city'] == 'Los Angeles' ||
-          row['city'] == 'New York' ||
-          row['city'] == 'San Francisco' ||
-          row['city'] == 'Chicago' ||
-          row['city'] == 'Boston' ||
-          row['city'] == 'Miami' ||
-          row['city'] == 'Charleston' ||
-          row['city'] == 'Oakland'
+      VALID_CITIES.include?(row['city'])
     end
   end
 
